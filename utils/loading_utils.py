@@ -3,8 +3,9 @@ from typing import Dict, Optional, Union
 from pathlib import Path
 import logging
 import json
-from transformers import AutoTokenizer, AutoModel
-from transformer_lens.HookedTransformerConfig import HookedTransformerConfig, HookedTransformer
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformer_lens.HookedTransformerConfig import HookedTransformerConfig
+from transformer_lens import HookedTransformer
 from transformer_lens.pretrained.weight_conversions import (
     convert_bert_weights,
     convert_bloom_weights,
@@ -31,6 +32,7 @@ def get_pretrained_model(
     device: torch.device,
     default_padding_side: str = "right",
     fold_ln: bool = True,
+    dtype: torch.dtype = torch.float32,
     center_writing_weights: bool = True,
     center_unembed: bool = True,
     refactor_factored_attn_matrices: bool = False,
@@ -43,6 +45,7 @@ def get_pretrained_model(
         device (torch.device): device to load model to.
         default_padding_side (str): default padding side, defaults to "right".
         fold_ln (bool): whether tp fold in the LayerNorm weights to subsequent linear layer, defaults to True
+        dtype (torch.dtype): data type of model, defaults to torch.float32.
         center_writing_weights: Whether to center weights
             writing to the residual stream (ie set mean to be zero). Due to LayerNorm this
             doesn't change the computation.
@@ -82,11 +85,15 @@ def get_pretrained_model(
             of the pattern across the ``source_position`` dimension, which is just ``1``. So it
             remains exactly the same, and so is just broadcast across the destination positions.
     """
+    assert Path(path_to_model).exists()
     cfg = get_pretrained_model_config(path_to_model, device=device)
-    model = AutoModel.from_pretrained(path_to_model)
-    tokenizer = AutoTokenizer.from_pretrained(path_to_model)
-    state_dict = get_pretrained_state_dict(cfg, model)
+    hf_model = AutoModelForCausalLM.from_pretrained(path_to_model, torch_dtype=dtype, use_safetensors=True)
+    state_dict = get_pretrained_state_dict(cfg, hf_model)
+    del hf_model
+    
+    tokenizer = AutoTokenizer.from_pretrained(path_to_model, torch_dtype=dtype, use_safetensors=True)
     hooked_model = HookedTransformer(cfg, tokenizer, move_to_device=False, default_padding_side=default_padding_side)
+    
     hooked_model.load_and_process_state_dict(
         state_dict,
         fold_ln=fold_ln,
@@ -192,10 +199,10 @@ def get_pretrained_model_config(
             Also given to other HuggingFace functions when compatible.
 
     """
-    if Path(model_path).exists():
-        # If the model_name is a path, it's a local model
-        cfg_dict = convert_hf_model_config(model_path, **kwargs)
-        official_model_name = model_path
+    assert Path(model_path).exists()
+    # If the model_name is a path, it's a local model
+    cfg_dict = convert_hf_model_config(model_path, **kwargs)
+    official_model_name = model_path
     # Processing common to both model types
     # Remove any prefix, saying the organization who made a model.
     cfg_dict["model_name"] = official_model_name.split("/")[-1]
@@ -247,11 +254,11 @@ def convert_hf_model_config(model_name: str, **kwargs):
     Takes the path to model as an input.
     """
     # In case the user passed in an alias
-    if (Path(model_name) / "config.json").exists():
-        with open(Path(model_name) / "config.json", "r") as f:
-            hf_config = json.load(f)
-        logging.info("Loading model config from local directory")
-        official_model_name = model_name
+    assert (Path(model_name) / "config.json").exists()
+    with open(Path(model_name) / "config.json", "r") as f:
+        hf_config = json.load(f)
+    logging.info("Loading model config from local directory")
+    official_model_name = "/".join(model_name.split("/")[2:])
 
     # Load HuggingFace model config
     if "llama" in official_model_name.lower():
