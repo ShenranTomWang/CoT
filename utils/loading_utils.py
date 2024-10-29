@@ -36,7 +36,8 @@ def get_pretrained_model(
     center_writing_weights: bool = True,
     center_unembed: bool = True,
     refactor_factored_attn_matrices: bool = False,
-    fold_value_biases: bool = True
+    fold_value_biases: bool = True,
+    verbose: bool = False
 ):
     """Loads a pretrained model given path to model (on local machine).
 
@@ -84,15 +85,31 @@ def get_pretrained_model(
             the ``(source_)position`` dimension, we're basically just multiplying it by the sum
             of the pattern across the ``source_position`` dimension, which is just ``1``. So it
             remains exactly the same, and so is just broadcast across the destination positions.
+        verbose: whether to print debugging information, defaults to False.
     """
     assert Path(path_to_model).exists()
     cfg = get_pretrained_model_config(path_to_model, device=device)
-    hf_model = AutoModelForCausalLM.from_pretrained(path_to_model, torch_dtype=dtype, use_safetensors=True)
+    hf_model = AutoModelForCausalLM.from_pretrained(path_to_model, torch_dtype=dtype, use_safetensors=True, device_map=device)
+    if verbose:
+        print(hf_model)
+        allocated_memory = torch.cuda.memory_allocated(0) / (1024 ** 3)
+        print(f"After loading model allocated {allocated_memory} GB cuda memory")
     state_dict = get_pretrained_state_dict(cfg, hf_model)
+    for key in state_dict.keys():
+        state_dict[key] = state_dict[key].to(device)
+    if verbose:
+        allocated_memory = torch.cuda.memory_allocated(0) / (1024 ** 3)  # GB
+        print(f"After loading state_dict allocated {allocated_memory} GB cuda memory")
     del hf_model
     
-    tokenizer = AutoTokenizer.from_pretrained(path_to_model, torch_dtype=dtype, use_safetensors=True)
-    hooked_model = HookedTransformer(cfg, tokenizer, move_to_device=False, default_padding_side=default_padding_side)
+    tokenizer = AutoTokenizer.from_pretrained(path_to_model, torch_dtype=dtype, use_safetensors=True, device_map=device)
+    if verbose:
+        allocated_memory = torch.cuda.memory_allocated(0) / (1024 ** 3)  # GB
+        print(f"Before loading HookedTransformer allocated {allocated_memory} GB cuda memory")
+    hooked_model = HookedTransformer(cfg, tokenizer, move_to_device=True, default_padding_side=default_padding_side, )
+    if verbose:
+        allocated_memory = torch.cuda.memory_allocated(0) / (1024 ** 3)  # GB
+        print(f"After loading HookedTransformer allocated {allocated_memory} GB cuda memory")
     
     hooked_model.load_and_process_state_dict(
         state_dict,
