@@ -1,3 +1,5 @@
+
+i
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -163,3 +165,4 @@ cython_debug/
 
 models/
 experimental_data/
+weights/
