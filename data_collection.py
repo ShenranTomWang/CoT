@@ -2,7 +2,7 @@ import torch
 from utils.data_collection_utils import load_data, load_model, obtain_act_diff
 import os
 
-DATASET = "com2sense"
+DATASET = "fantasy_reasoning"
 DATA_PATH = f"./data/{DATASET}.json"
 MODEL_NAME = "gemma-2-2b-it"
 PRE_PROMPT = "Yes or no: "
@@ -20,7 +20,7 @@ torch.set_grad_enabled(False)
 if __name__ == "__main__":
     print(f"Executing on device {device}")
 
-    train, test, pair_id_lookup = load_data(N_SHOTS, DATA_PATH)
+    train, test, pair_id_lookup = load_data(N_SHOTS, DATA_PATH, lookup_key=None)
 
     model = load_model(MODEL_NAME, device=device)
     print(model)
