@@ -17,7 +17,7 @@ def load_data(n_shots: int, data_path: str, data_key: str = "examples", lookup_k
         dataset = json.load(file)
 
     examples = dataset[data_key]
-    pair_id_lookup = dataset[lookup_key]
+    pair_id_lookup = dataset[lookup_key] if lookup_key != None else None
     dataset = pd.DataFrame(examples)
     train = dataset.sample(n_shots)
     test = dataset.drop(train.index)

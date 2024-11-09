@@ -1,12 +1,15 @@
 import torch
 from utils.data_collection_utils import load_data, load_model, obtain_act_diff
 import os
+import configparser
 
-DATASET = "fantasy_reasoning"
-DATA_PATH = f"./data/{DATASET}.json"
-MODEL_NAME = "gemma-2-2b-it"
-PRE_PROMPT = "Yes or no: "
-PROMPT_KEY = "input"
+DATASET = os.getenv("DATASET")
+config = configparser.ConfigParser()
+config.read("./data/config.ini")
+DATA_PATH = config[DATASET]["data_path"]
+MODEL_NAME = "gemma-2-2b"
+PRE_PROMPT = config[DATASET]["pre_prompt"] + " "
+PROMPT_KEY = config[DATASET]["prompt_key"]
 N_SHOTS = 0
 BATCH_SIZE = 1
 BATCH = int(os.getenv("BATCH"))
