@@ -14,7 +14,6 @@ N_SHOTS = 0
 BATCH_SIZE = 1
 BATCH = int(os.getenv("BATCH"))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-remote = False
 START_IDX = int(os.getenv("START_IDX"))
 MAX_IDX = int(os.getenv("MAX_IDX"))      # Number of indeces in to obtain data, -1 for all
 LAYERS = "ALL"    # Layers to look at activations, "ALL" or list of int
