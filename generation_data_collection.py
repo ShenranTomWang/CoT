@@ -11,8 +11,7 @@ MODEL_NAME = "gemma-2-2b"
 PRE_PROMPT = config[DATASET]["pre_prompt"] + " "
 PROMPT_KEY = config[DATASET]["prompt_key"]
 N_SHOTS = 0
-BATCH_SIZE = 1
-BATCH = int(os.getenv("BATCH"))
+INDEX = int(os.getenv("BATCH"))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 START_IDX = int(os.getenv("START_IDX"))
 MAX_IDX = int(os.getenv("MAX_IDX"))      # Number of indeces in to obtain data, -1 for all
@@ -32,7 +31,7 @@ if __name__ == "__main__":
     layers = list(range(len(model.blocks))) if LAYERS == "ALL" else LAYERS
     acts_resid, acts_resid_exp, _, _ = obtain_single_line_generation_act(
         model,
-        test.iloc[0]["sent"],
+        test.iloc[INDEX]["sent"],
         " Let's think step by step",
         LAYERS,
         PRE_PROMPT,
@@ -43,5 +42,5 @@ if __name__ == "__main__":
     acts_exp_resid = torch.stack([torch.stack([acts_resid_exp[i][layer] for layer in acts_resid_exp[i].keys()]) for i in range(len(acts_resid_exp))])
     acts_resid = acts_resid[:, :, 0, :]
     acts_exp_resid = acts_exp_resid[:, :, 0, :]
-    torch.save(acts_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_resid_generation_{BATCH}.pt")
-    torch.save(acts_exp_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_exp_resid_generation_{BATCH}.pt")
+    torch.save(acts_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_resid_generation_{INDEX}.pt")
+    torch.save(acts_exp_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_exp_resid_generation_{INDEX}.pt")
