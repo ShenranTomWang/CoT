@@ -54,7 +54,7 @@ def get_layer_acts_post_resid(statements, model: HookedTransformer, layers: list
     for layer in layers:
         hooks.append((get_act_name("resid_post", layer=layer), get_act))
 
-    out = model.run_with_hooks(statements, fwd_hooks=hooks, return_type=None)
+    out = model.run_with_hooks(statements, fwd_hooks=hooks, return_type="logits")
 
     return out, acts
 
@@ -112,23 +112,30 @@ def obtain_single_line_generation_act(
     generations = []
     acts_resid_exp = []
     generations_exp = []
-    query = [train_prompt + query]
-    query_exp = [query + exp]
+    query = train_prompt + query
+    query = [query]
+    query_exp = query[0] + exp
+    query_exp = [query_exp]
+    print(query, query_exp)
     
     output = ""
     output_exp = ""
     
     while output != "<eos>":
         output, act_resid = get_layer_acts_post_resid(query, model, layers)
-        query = tokenizer.decode(output.logits[0])
+        output = torch.argmax(output, dim=-1)[0]
+        query = tokenizer.decode(output)
         output = query.split(" ")[-1]
+        print(query)
         generations.append(query)
         acts_resid.append(act_resid)
     
     while output_exp != "<eos>":
         output_exp, act_resid_exp = get_layer_acts_post_resid(query_exp, model, layers)
-        query_exp = tokenizer.decode(output.logits[0])
+        output_exp = torch.argmax(output_exp, dim=-1)[0]
+        query_exp = tokenizer.decode(output_exp)
         output_exp = query_exp.split(" ")[-1]
+        print(query_exp)
         generations_exp.append(query_exp)
         acts_resid_exp.append(act_resid_exp)
         

@@ -31,7 +31,7 @@ if __name__ == "__main__":
         model,
         test.iloc[INDEX]["sent"],
         " Let's think step by step",
-        LAYERS,
+        layers,
         PRE_PROMPT,
         tokenizer
     )
