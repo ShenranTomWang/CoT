@@ -11,10 +11,8 @@ MODEL_NAME = "gemma-2-2b"
 PRE_PROMPT = config[DATASET]["pre_prompt"] + " "
 PROMPT_KEY = config[DATASET]["prompt_key"]
 N_SHOTS = 0
-INDEX = int(os.getenv("BATCH"))
+INDEX = int(os.getenv("INDEX"))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-START_IDX = int(os.getenv("START_IDX"))
-MAX_IDX = int(os.getenv("MAX_IDX"))      # Number of indeces in to obtain data, -1 for all
 LAYERS = "ALL"    # Layers to look at activations, "ALL" or list of int
 torch.set_grad_enabled(False)
 
