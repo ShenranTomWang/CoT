@@ -39,12 +39,9 @@ if __name__ == "__main__":
         tokenizer
     )
     
-    diffs_resid = torch.stack([torch.stack([diffs_resid[i][layer] for layer in diffs_resid[i].keys()]) for i in range(len(diffs_resid))])
     acts_resid = torch.stack([torch.stack([acts_resid[i][layer] for layer in acts_resid[i].keys()]) for i in range(len(acts_resid))])
     acts_exp_resid = torch.stack([torch.stack([acts_resid_exp[i][layer] for layer in acts_resid_exp[i].keys()]) for i in range(len(acts_resid_exp))])
-    diffs_resid = diffs_resid[:, :, 0, :]
     acts_resid = acts_resid[:, :, 0, :]
     acts_exp_resid = acts_exp_resid[:, :, 0, :]
-    torch.save(diffs_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/diffs_resid_{BATCH}.pt")
-    torch.save(acts_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_resid_{BATCH}.pt")
-    torch.save(acts_exp_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_exp_resid_{BATCH}.pt")
+    torch.save(acts_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_resid_generation_{BATCH}.pt")
+    torch.save(acts_exp_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_exp_resid_generation_{BATCH}.pt")
