@@ -5,7 +5,7 @@ from utils.analysis_utils import top_k_abs_acts_args, get_args_desc
 
 MODEL = os.getenv("MODEL")
 DATASET = os.getenv("DATASET")
-INDEX = os.getenv("INDEX")
+INDEX = int(os.getenv("INDEX"))
 DATA_PATH = f"./experimental_data/{MODEL}/{DATASET}/"
 CHOP_OFF = int(os.getenv("CHOP_OFF"))
 STREAM = os.getenv("STREAM", "res")
