@@ -87,6 +87,99 @@ def get_layer_acts_attn(statements, model: HookedTransformer, layers: list) -> t
 
     return acts_q, acts_k, acts_v
 
+def top_p_sampling(logits, p=0.9):
+    """
+    Implements top-p (nucleus) sampling.
+    
+    Args:
+        logits: The logits output from the model (shape: [vocab_size]).
+        p: The cumulative probability threshold for top-p sampling.
+        
+    Returns:
+        The index of the sampled token.
+    """
+    # Apply softmax to convert logits to probabilities
+    probabilities = torch.softmax(logits, dim=-1)
+
+    # Sort probabilities and their indices in descending order
+    sorted_probs, sorted_indices = torch.sort(probabilities, descending=True)
+
+    # Compute cumulative probabilities
+    cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+
+    # Mask tokens with cumulative probabilities above p
+    cutoff_index = torch.where(cumulative_probs > p)[0][0]  # First index where cumulative prob > p
+    sorted_probs = sorted_probs[:cutoff_index + 1]
+    sorted_indices = sorted_indices[:cutoff_index + 1]
+
+    # Normalize probabilities to sum to 1
+    sorted_probs = sorted_probs / sorted_probs.sum()
+
+    # Sample from the filtered distribution
+    sampled_index = torch.multinomial(sorted_probs, num_samples=1).item()
+
+    # Return the original index of the sampled token
+    return sorted_indices[sampled_index]
+
+def generate_top_p_with_hooks(query: str, model: HookedTransformer, layers: list, tokenizer: AutoTokenizer, p: float = 0.9) -> tuple:
+    """top p generation pass that obtains activations
+
+    Args:
+        query (str): query input
+        model (HookedTransformer)
+        layers (list)
+        tokenizer (AutoTokenizer)
+        p (float, optional): for top-p sampling. Defaults to 0.9.
+
+    Returns:
+        tuple: generations, acts_resid
+    """
+    output = ""
+    generations = []
+    acts_resid = []
+    
+    while output != "<eos>":
+        logits, act_resid = get_layer_acts_post_resid(query, model, layers)
+        logit = logits[:, -1, :]
+        next_id = top_p_sampling(logit, p=p)
+        next_token = tokenizer.decode(next_id)
+        output = output + " " + next_token
+        print(output)
+        generations.append(output)
+        acts_resid.append(act_resid)
+    
+    return generations, acts_resid
+
+def generate_greedy_with_hooks(query: str, model: HookedTransformer, layers: list, tokenizer: AutoTokenizer) -> tuple:
+    """greedy generation pass that obtains activations
+
+    Args:
+        query (str): query input
+        model (HookedTransformer)
+        layers (list)
+        tokenizer (AutoTokenizer)
+
+    Returns:
+        tuple: generations, acts_resid
+    """
+    output = ""
+    generations = []
+    acts_resid = []
+    
+    while output != "<eos>":
+        logits, act_resid = get_layer_acts_post_resid(query, model, layers)
+        logit = logits[0, -1, :]
+        # print(logit.shape)
+        next_id = torch.argmax(logit, dim=-1)
+        output = tokenizer.decode(next_id)
+        query = query + output
+        generations.append(query)
+        acts_resid.append(act_resid)
+        print(query)
+    
+    print(generations[-1])
+    
+    return generations, acts_resid
 
 def obtain_single_line_generation_act(
     model: HookedTransformer,
@@ -94,7 +187,8 @@ def obtain_single_line_generation_act(
     exp: str,
     layers: list,
     train_prompt: str,
-    tokenizer: AutoTokenizer
+    tokenizer: AutoTokenizer,
+    p: float = 0.9
 ) -> tuple:
     """obtain activation difference between query and query + exp.
 
@@ -104,42 +198,20 @@ def obtain_single_line_generation_act(
         exp (str): experimental string
         layers (list): layers to obtain activations
         train_prompt (str): prompt added before query
+        p (int): p for top p sampling, defaults to 0.9
 
     Returns:
         tuple: tuple<list<torch.Tensor>> the activation of query and query + exp at each timestep, as well as generated output at each timestep
     """
-    acts_resid = []
-    generations = []
-    acts_resid_exp = []
-    generations_exp = []
     query = train_prompt + query
-    query = [query]
-    query_exp = query[0] + exp
-    query_exp = [query_exp]
-    print(query, query_exp)
+    query = query
+    query_exp = query + exp
+    query_exp = query_exp
     
-    output = ""
-    output_exp = ""
-    
-    while output != "<eos>":
-        output, act_resid = get_layer_acts_post_resid(query, model, layers)
-        output = torch.argmax(output, dim=-1)[0]
-        query = tokenizer.decode(output)
-        output = query.split(" ")[-1]
-        print(query)
-        generations.append(query)
-        acts_resid.append(act_resid)
-    
-    while output_exp != "<eos>":
-        output_exp, act_resid_exp = get_layer_acts_post_resid(query_exp, model, layers)
-        output_exp = torch.argmax(output_exp, dim=-1)[0]
-        query_exp = tokenizer.decode(output_exp)
-        output_exp = query_exp.split(" ")[-1]
-        print(query_exp)
-        generations_exp.append(query_exp)
-        acts_resid_exp.append(act_resid_exp)
+    generations, acts_resid = generate_greedy_with_hooks(query, model, layers, tokenizer)
+    generations_exp, acts_exp_resid = generate_greedy_with_hooks(query_exp, model, layers, tokenizer)
         
-    return acts_resid, acts_resid_exp, generations, generations_exp
+    return acts_resid, acts_exp_resid, generations, generations_exp
 
 
 def obtain_act_diff(

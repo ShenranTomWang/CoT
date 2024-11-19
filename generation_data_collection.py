@@ -7,7 +7,7 @@ DATASET = os.getenv("DATASET")
 config = configparser.ConfigParser()
 config.read("./data/config.ini")
 DATA_PATH = config[DATASET]["data_path"]
-MODEL_NAME = "gemma-2-2b"
+MODEL_NAME = os.getenv("MODEL")
 PRE_PROMPT = config[DATASET]["pre_prompt"] + " "
 PROMPT_KEY = config[DATASET]["prompt_key"]
 N_SHOTS = 0
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     layers = list(range(len(model.blocks))) if LAYERS == "ALL" else LAYERS
     acts_resid, acts_resid_exp, _, _ = obtain_single_line_generation_act(
         model,
-        test.iloc[INDEX]["sent"],
+        test.iloc[INDEX][PROMPT_KEY],
         " Let's think step by step",
         layers,
         PRE_PROMPT,
