@@ -27,7 +27,7 @@ if __name__ == "__main__":
     tokenizer = load_tokenizer(MODEL_NAME, device=device)
     
     layers = list(range(len(model.blocks))) if LAYERS == "ALL" else LAYERS
-    acts_resid, acts_resid_exp, _, _ = obtain_single_line_generation_act(
+    acts_resid, acts_resid_exp, generation, generation_exp = obtain_single_line_generation_act(
         model,
         test.iloc[INDEX][PROMPT_KEY],
         " Let's think step by step",
@@ -42,3 +42,7 @@ if __name__ == "__main__":
     acts_exp_resid = acts_exp_resid[:, :, 0, :]
     torch.save(acts_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_resid_generation_{INDEX}.pt")
     torch.save(acts_exp_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_exp_resid_generation_{INDEX}.pt")
+    with open(f"./experimental_data/{MODEL_NAME}/{DATASET}/generation.txt", "w") as f:
+        f.write(generation)
+    with open(f"./experimental_data/{MODEL_NAME}/{DATASET}/generation_exp.txt", "w") as f:
+        f.write(generation_exp)

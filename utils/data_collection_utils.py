@@ -135,7 +135,6 @@ def generate_top_p_with_hooks(query: str, model: HookedTransformer, layers: list
         tuple: generations, acts_resid
     """
     output = ""
-    generations = []
     acts_resid = []
     
     while output != "<eos>":
@@ -145,10 +144,9 @@ def generate_top_p_with_hooks(query: str, model: HookedTransformer, layers: list
         next_token = tokenizer.decode(next_id)
         output = output + " " + next_token
         print(output)
-        generations.append(output)
         acts_resid.append(act_resid)
     
-    return generations, acts_resid
+    return query, acts_resid
 
 def generate_greedy_with_hooks(query: str, model: HookedTransformer, layers: list, tokenizer: AutoTokenizer) -> tuple:
     """greedy generation pass that obtains activations
@@ -163,7 +161,6 @@ def generate_greedy_with_hooks(query: str, model: HookedTransformer, layers: lis
         tuple: generations, acts_resid
     """
     output = ""
-    generations = []
     acts_resid = []
     
     while output != "<eos>":
@@ -173,13 +170,10 @@ def generate_greedy_with_hooks(query: str, model: HookedTransformer, layers: lis
         next_id = torch.argmax(logit, dim=-1)
         output = tokenizer.decode(next_id)
         query = query + output
-        generations.append(query)
         acts_resid.append(act_resid)
         print(query)
     
-    print(generations[-1])
-    
-    return generations, acts_resid
+    return query, acts_resid
 
 def obtain_single_line_generation_act(
     model: HookedTransformer,
