@@ -11,7 +11,7 @@ CHOP_OFF = os.getenv("CHOP_OFF")
 STREAM = os.getenv("STREAM", "res")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-acts_resid = torch.load(DATA_PATH + f"acts_resid_generation{INDEX}.pt", map_location=device)
+acts_resid = torch.load(DATA_PATH + f"acts_resid_generation_{INDEX}.pt", map_location=device)
 acts_resid = acts_resid[:CHOP_OFF, :, :]
 acts_exp_resid = torch.load(DATA_PATH + f"acts_exp_resid_generation_{INDEX}.pt", map_location=device)
 
