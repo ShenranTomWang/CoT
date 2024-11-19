@@ -7,7 +7,7 @@ MODEL = os.getenv("MODEL")
 DATASET = os.getenv("DATASET")
 INDEX = os.getenv("INDEX")
 DATA_PATH = f"./experimental_data/{MODEL}/{DATASET}/"
-CHOP_OFF = os.getenv("CHOP_OFF")
+CHOP_OFF = int(os.getenv("CHOP_OFF"))
 STREAM = os.getenv("STREAM", "res")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
