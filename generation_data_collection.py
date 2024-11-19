@@ -1,5 +1,6 @@
 import torch
-from utils.data_collection_utils import load_data, load_model, obtain_single_line_generation_act, load_tokenizer
+from utils.data_collection_utils import obtain_single_line_generation_act
+from utils.loading_utils import load_data, load_model, load_tokenizer
 import os
 import configparser
 
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     acts_exp_resid = acts_exp_resid[:, :, 0, :]
     torch.save(acts_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_resid_generation_{INDEX}.pt")
     torch.save(acts_exp_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_exp_resid_generation_{INDEX}.pt")
-    with open(f"./experimental_data/{MODEL_NAME}/{DATASET}/generation.txt", "w") as f:
+    with open(f"./experimental_data/{MODEL_NAME}/{DATASET}/generation_{INDEX}.txt", "w") as f:
         f.write(generation)
-    with open(f"./experimental_data/{MODEL_NAME}/{DATASET}/generation_exp.txt", "w") as f:
+    with open(f"./experimental_data/{MODEL_NAME}/{DATASET}/generation_exp_{INDEX}.txt", "w") as f:
         f.write(generation_exp)

@@ -4,38 +4,8 @@ from transformer_lens.hook_points import HookPoint
 from transformer_lens.utils import get_act_name
 from transformers import AutoTokenizer
 import torch
-import json
 import pandas as pd
 from tqdm import tqdm
-import configparser
-
-CONFIG_PATH = "./config.ini"
-config = configparser.ConfigParser()
-config.read(CONFIG_PATH)
-
-def load_data(n_shots: int, data_path: str, data_key: str = "examples", lookup_key: str = "pair_id_lookup") -> tuple:
-    with open(data_path, "r") as file:
-        dataset = json.load(file)
-
-    examples = dataset[data_key]
-    pair_id_lookup = dataset[lookup_key] if lookup_key != None else None
-    dataset = pd.DataFrame(examples)
-    train = dataset.sample(n_shots)
-    test = dataset.drop(train.index)
-
-    return train, test, pair_id_lookup
-
-def load_model(model_name: str, device='cpu') -> HookedTransformer:
-    print(f"Loading model {model_name}...")
-    weights_directory = "./models/" + config[model_name]['weights_directory']
-    model = get_pretrained_model(weights_directory, dtype=torch.bfloat16, device=device, verbose=True)
-    return model
-
-def load_tokenizer(model_name: str, device='cpu') -> AutoTokenizer:
-    print(f"Loading tokenizer {model_name}...")
-    weights_directory = "./models/" + config[model_name]['weights_directory']
-    model = AutoTokenizer.from_pretrained(weights_directory, dtype=torch.bfloat16, device=device)
-    return model
 
 def get_layer_acts_post_resid(statements, model: HookedTransformer, layers: list) -> dict:
     """

@@ -1,5 +1,6 @@
 import torch
-from utils.data_collection_utils import load_data, load_model, obtain_act_diff
+from utils.data_collection_utils import obtain_act_diff
+from utils.loading_utils import load_data, load_model
 import os
 import configparser
 
