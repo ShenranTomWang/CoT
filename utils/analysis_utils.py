@@ -34,11 +34,11 @@ def fetch_neuron_description(model_name: str, layer: int, neuron_idx: int, strea
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
     url = Template(config[model_name]["neuronpedia_url_template"])
-    url = url.substitute(layer=layer, stream=stream, neuron=neuron_idx)
+    url = url.substitute(layer=layer, stream=stream, neuron=neuron_idx.item())
     resp = requests.get(url)
     resp = resp.json()
-    print(resp)
-    return resp["explanations"][0]["description"]
+    desc = resp["explanations"][0]["description"]
+    return desc
 
 def get_args_desc(model_name: str, stream: str, args: torch.Tensor) -> list:
     """get descriptions for activations
