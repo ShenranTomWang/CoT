@@ -28,9 +28,22 @@ from transformer_lens.pretrained.weight_conversions import (
     convert_t5_weights
 )
 
-CONFIG_PATH = "./config.ini"
-config = configparser.ConfigParser()
-config.read(CONFIG_PATH)
+CONFIG_PATH_MODEL = "./config.ini"
+config_model = configparser.ConfigParser()
+config_model.read(CONFIG_PATH_MODEL)
+
+CONFIG_PATH_DATASET = "./data/config.ini"
+config_dataset = configparser.ConfigParser()
+config_dataset.read(CONFIG_PATH_DATASET)
+
+def load_dataset(n_shots: int, dataset: str) -> tuple:
+    data_path = config_dataset[dataset]["data_path"]
+    data_key = config_dataset[dataset]["data_key"]
+    lookup_key = config_dataset[dataset]["lookup_key"] if "lookup_key" in config_dataset else None
+    prompt_key = config_dataset[dataset]["prompt_key"]
+    train, test, pair_id_lookup = load_data(n_shots, data_path, data_key, lookup_key)
+    pre_prompt = config_dataset[dataset]["pre_prompt"]
+    return train, test, pair_id_lookup, prompt_key, pre_prompt
 
 def load_data(n_shots: int, data_path: str, data_key: str = "examples", lookup_key: str = "pair_id_lookup") -> tuple:
     with open(data_path, "r") as file:
@@ -46,13 +59,13 @@ def load_data(n_shots: int, data_path: str, data_key: str = "examples", lookup_k
 
 def load_model(model_name: str, device='cpu') -> HookedTransformer:
     print(f"Loading model {model_name}...")
-    weights_directory = "./models/" + config[model_name]['weights_directory']
+    weights_directory = "./models/" + config_model[model_name]['weights_directory']
     model = get_pretrained_model(weights_directory, dtype=torch.bfloat16, device=device, verbose=True)
     return model
 
 def load_tokenizer(model_name: str, device='cpu') -> AutoTokenizer:
     print(f"Loading tokenizer {model_name}...")
-    weights_directory = "./models/" + config[model_name]['weights_directory']
+    weights_directory = "./models/" + config_model[model_name]['weights_directory']
     model = AutoTokenizer.from_pretrained(weights_directory, dtype=torch.bfloat16, device=device)
     return model
 

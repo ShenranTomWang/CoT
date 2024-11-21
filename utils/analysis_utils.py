@@ -2,6 +2,7 @@ import torch
 import configparser
 import requests
 from string import Template
+from transformers import AutoTokenizer
 
 CONFIG_PATH = "./config.ini"
 
@@ -41,9 +42,16 @@ def fetch_neuron_description(model_name: str, layer: int, neuron_idx: int, strea
     url = Template(config[model_name]["neuronpedia_url_template"])
     url = url.substitute(layer=layer, stream=stream, neuron=neuron_idx.item())
     resp = session.get(url)
-    resp = resp.json()
-    desc = resp["explanations"][0]["description"]
-    return desc
+    if resp.status_code == 200:
+        try:
+            resp = resp.json()
+            desc = resp["explanations"][0]["description"]
+            return desc
+        except Exception as e:
+            print(f"{e}, retrying...")
+            return fetch_neuron_description(model_name, layer, neuron_idx, stream)
+    else:
+        resp.raise_for_status()
 
 def get_args_desc(model_name: str, stream: str, args: torch.Tensor) -> list:
     """get descriptions for activations
@@ -69,4 +77,22 @@ def get_args_desc(model_name: str, stream: str, args: torch.Tensor) -> list:
             sample_desc.append(layer_desc)
         args_desc.append(sample_desc)
     return args_desc
+
+def get_end_idx(text: str, model_name: str, signal: int, prompt: str):
+    """get the end idx in text that signal first appears, in tokenized index
+
+    Args:
+        text (str): input text
+        model_name (str): name of model to use
+        signal (int): signal for stop, token id for stopping word
+        prompt (str): prompt given to model that should be removed from text
+    """
+    config = configparser.ConfigParser()
+    config.read(CONFIG_PATH)
+    dir = "./models/" + config[model_name]["weights_directory"]
+    tokenizer = AutoTokenizer.from_pretrained(dir)
+    prompt_len = len(tokenizer(prompt).input_ids)
+    text_ids = tokenizer(text).input_ids[prompt_len:]
+    index = text_ids.index(signal)
+    return index
     
