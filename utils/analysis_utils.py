@@ -5,19 +5,23 @@ from string import Template
 
 CONFIG_PATH = "./config.ini"
 
-def top_k_abs_acts_args(acts: torch.Tensor, k: int) -> torch.Tensor:
+def top_k_abs_acts_args(acts: torch.Tensor, k: int, layer: int = -1) -> torch.Tensor:
     """return the top k activations indeces (largest in absolute value) of acts
 
     Args:
         acts (torch.Tensor): shape (samples, layers, hidden_channels)
         k (int)
+        layer (int): the layer to look at, -1 indicates all layers. Defaults to -1.
 
     Returns:
         torch.Tensor: shape (samples, layers, k)
     """
     acts = abs(acts)
     acts = torch.argsort(acts, dim=-1, descending=True)
-    return acts[:, :, :k]
+    if layer == -1:
+        return acts[:, :, :k]
+    else:
+        return acts[:, layer:layer+1, :k]
     
 def fetch_neuron_description(model_name: str, layer: int, neuron_idx: int, stream: str) -> str:
     """fetch neuron description from neuronpedia for specified model, layer and neuron
