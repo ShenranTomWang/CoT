@@ -35,11 +35,12 @@ def fetch_neuron_description(model_name: str, layer: int, neuron_idx: int, strea
     Returns:
         str: description of neuron
     """
+    session = requests.Session()
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
     url = Template(config[model_name]["neuronpedia_url_template"])
     url = url.substitute(layer=layer, stream=stream, neuron=neuron_idx.item())
-    resp = requests.get(url)
+    resp = session.get(url)
     resp = resp.json()
     desc = resp["explanations"][0]["description"]
     return desc
@@ -61,6 +62,7 @@ def get_args_desc(model_name: str, stream: str, args: torch.Tensor) -> list:
         for layer_idx in range(args.shape[1]):
             layer_desc = []
             for neuron_idx in range(args.shape[2]):
+                print(f"sample {sample_idx}, layer {layer_idx}, neuron {neuron_idx}")
                 neuron = args[sample_idx, layer_idx, neuron_idx]
                 neuron_desc = fetch_neuron_description(model_name, layer_idx, neuron, stream)
                 layer_desc.append(neuron_desc)

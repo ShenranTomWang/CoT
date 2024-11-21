@@ -23,10 +23,9 @@ acts_resid_args = top_k_abs_acts_args(acts_resid, TOP_K, layer=LAYER)      # (sa
 acts_exp_resid_args = top_k_abs_acts_args(acts_exp_resid, TOP_K, layer=LAYER)
 
 resid_desc = get_args_desc(MODEL, STREAM, acts_resid_args)
-resid_exp_desc = get_args_desc(MODEL, STREAM, acts_exp_resid_args)
-
-with open(DATA_PATH + f"acts_exp_desc_{INDEX}.json", "w") as f:
-    json.dump(resid_exp_desc, f, indent=4)
-    
 with open(DATA_PATH + f"acts_desc_{INDEX}.json", "w") as f:
     json.dump(resid_desc, f, indent=4)
+
+resid_exp_desc = get_args_desc(MODEL, STREAM, acts_exp_resid_args)
+with open(DATA_PATH + f"acts_exp_desc_{INDEX}.json", "w") as f:
+    json.dump(resid_exp_desc, f, indent=4)
