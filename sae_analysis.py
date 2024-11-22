@@ -56,8 +56,8 @@ if Path(CACHE_EXP_PATH).exists():
     with open(CACHE_EXP_PATH, "r") as cache:
         obj = json.load(cache)
     resid_exp_desc = get_args_desc(
-        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_{INDEX}.json", CACHE_EXP_PATH,
-        sample_idx=obj.sample_idx, layer_idx=obj.layer_idx, neuron_idx=obj.neuron_idx
+        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_exp_desc_{INDEX}.json", CACHE_EXP_PATH,
+        sample_idx=obj["sample_idx"], layer_idx=obj["layer_idx"], neuron_idx=obj["neuron_idx"]
     )
 else:
     os.makedirs(os.path.dirname(CACHE_EXP_PATH), exist_ok=True)

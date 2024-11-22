@@ -68,9 +68,9 @@ def get_args_desc(
     args: torch.Tensor,
     data_path: str,
     checkpoint_path: str,
-    sample_idx_pickup: int = 0, 
-    layer_idx_pickup: int = 0, 
-    neuron_idx_pickup: int = 0
+    sample_idx: int = 0, 
+    layer_idx: int = 0, 
+    neuron_idx: int = 0
 ) -> None:
     """get descriptions for activations, write directly to data_path, write to checkpoint_path when exception
         occurs
@@ -81,13 +81,10 @@ def get_args_desc(
         args (torch.Tensor): shape (samples, layer, num_neurons)
         data_path (str): path to data
         checkpoint_path (str): path to checkpoint file that stores sample_idx, layer_idx and neuron_idx
-        sample_idx_pickup (int): sample index to pick up from. Defaults to 0
-        layer_idx_pickup (int): layer index to pick up from. Defaults to 0
-        neuron_idx_pickup (int): neuron index to pick up from. Defaults to 0
+        sample_idx (int): sample index to pick up from. Defaults to 0
+        layer_idx (int): layer index to pick up from. Defaults to 0
+        neuron_idx (int): neuron index to pick up from. Defaults to 0
     """
-    sample_idx = sample_idx_pickup
-    layer_idx = layer_idx_pickup
-    neuron_idx = neuron_idx_pickup
     write_to_file_end(data_path, "[\n")
     while sample_idx < args.shape[0]:
         if sample_idx == 0:
