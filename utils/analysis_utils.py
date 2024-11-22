@@ -59,9 +59,8 @@ def checkpoint(path: str, content: object):
         json.dumps(content, indent=4)
         
 def write_to_file_end(path: str, content: str):
-    # with open(path, "a") as f:
-    #     f.write(content)
-    pass
+    with open(path, "a") as f:
+        f.write(content)
 
 def get_args_desc(
     model_name: str,
