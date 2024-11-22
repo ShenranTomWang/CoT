@@ -105,10 +105,10 @@ def get_args_desc(
                     raise e
                 write_to_file_end(data_path, "            \"" + neuron_desc.replace("\"", "\\\"") + ("\", \n" if neuron_idx + 1 != args.shape[2] else "\"\n"))
                 neuron_idx += 1
-            write_to_file_end(data_path, "        ]" + ",\n        [\n" if layer_idx + 1 != args.shape[1] else "\n")
+            write_to_file_end(data_path, "        ]" + (",\n        [\n" if layer_idx + 1 != args.shape[1] else "\n"))
             neuron_idx = 0
             layer_idx += 1
-        write_to_file_end(data_path, "    ]" + ",\n    [\n" if sample_idx + 1 != args.shape[1] else "\n")
+        write_to_file_end(data_path, "    ]" + (",\n    [\n" if sample_idx + 1 != args.shape[1] else "\n"))
         layer_idx = 0
         sample_idx += 1
     write_to_file_end(data_path, "]")
