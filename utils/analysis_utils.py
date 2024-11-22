@@ -102,7 +102,7 @@ def get_args_desc(
                     neuron_desc = fetch_neuron_description(model_name, layer_idx, neuron, stream)
                     write_to_file_end(data_path, "            \"" + neuron_desc.replace("\"", "\\\"") + ("\", \n" if neuron_idx + 1 != args.shape[2] else "\"\n"))
                 except Exception as e:
-                    checkpoint(checkpoint_path, {sample_idx: sample_idx, layer_idx: layer_idx, neuron_idx: neuron_idx})
+                    checkpoint(checkpoint_path, {"sample_idx": sample_idx, "layer_idx": layer_idx, "neuron_idx": neuron_idx})
                     raise e
                 neuron_idx += 1
             write_to_file_end(data_path, "        ]" + (",\n        [\n" if layer_idx + 1 != args.shape[1] else "\n"))
