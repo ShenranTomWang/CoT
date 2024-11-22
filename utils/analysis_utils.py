@@ -1,4 +1,5 @@
 import torch
+import json
 import configparser
 import requests
 from string import Template
@@ -52,31 +53,65 @@ def fetch_neuron_description(model_name: str, layer: int, neuron_idx: int, strea
             return fetch_neuron_description(model_name, layer, neuron_idx, stream)
     else:
         resp.raise_for_status()
+        
+def checkpoint(path: str, content: object):
+    with open(path, "w"):
+        json.dumps(content, indent=4)
+        
+def write_to_file_end(path: str, content: str):
+    with open(path, "a") as f:
+        f.write(content)
 
-def get_args_desc(model_name: str, stream: str, args: torch.Tensor) -> list:
-    """get descriptions for activations
+def get_args_desc(
+    model_name: str,
+    stream: str,
+    args: torch.Tensor,
+    data_path: str,
+    checkpoint_path: str,
+    sample_idx_pickup: int = 0, 
+    layer_idx_pickup: int = 0, 
+    neuron_idx_pickup: int = 0
+) -> None:
+    """get descriptions for activations, write directly to data_path, write to checkpoint_path when exception
+        occurs
 
     Args:
         model_name (str): name of model
         stream (str): stream to look at
         args (torch.Tensor): shape (samples, layer, num_neurons)
-
-    Returns:
-        list: shape (samples, layer, num_neurons) descriptions
+        data_path (str): path to data
+        checkpoint_path (str): path to checkpoint file that stores sample_idx, layer_idx and neuron_idx
+        sample_idx_pickup (int): sample index to pick up from. Defaults to 0
+        layer_idx_pickup (int): layer index to pick up from. Defaults to 0
+        neuron_idx_pickup (int): neuron index to pick up from. Defaults to 0
     """
-    args_desc = []
-    for sample_idx in range(args.shape[0]):
-        sample_desc = []
-        for layer_idx in range(args.shape[1]):
-            layer_desc = []
-            for neuron_idx in range(args.shape[2]):
+    sample_idx = sample_idx_pickup
+    layer_idx = layer_idx_pickup
+    neuron_idx = neuron_idx_pickup
+    write_to_file_end(data_path, "[\n")
+    while sample_idx < args.shape[0]:
+        if sample_idx == 0:
+            write_to_file_end(data_path, "    [\n")
+        while layer_idx < args.shape[1]:
+            if layer_idx == 0:
+                write_to_file_end(data_path, "        [\n")
+            while neuron_idx < args.shape[2]:
                 print(f"sample {sample_idx}, layer {layer_idx}, neuron {neuron_idx}")
                 neuron = args[sample_idx, layer_idx, neuron_idx]
-                neuron_desc = fetch_neuron_description(model_name, layer_idx, neuron, stream)
-                layer_desc.append(neuron_desc)
-            sample_desc.append(layer_desc)
-        args_desc.append(sample_desc)
-    return args_desc
+                try:
+                    neuron_desc = fetch_neuron_description(model_name, layer_idx, neuron, stream)
+                except Exception as e:
+                    checkpoint(checkpoint_path, {sample_idx: sample_idx, layer_idx: layer_idx, neuron_idx: neuron_idx})
+                    raise e
+                write_to_file_end(data_path, "            \"" + neuron_desc.replace("\"", "\\\"") + ("\", \n" if neuron_idx + 1 != args.shape[2] else "\"\n"))
+                neuron_idx += 1
+            write_to_file_end(data_path, "        ]" + ",\n        [\n" if layer_idx + 1 != args.shape[1] else "\n")
+            neuron_idx = 0
+            layer_idx += 1
+        write_to_file_end(data_path, "    ]" + ",\n    [\n" if sample_idx + 1 != args.shape[1] else "\n")
+        layer_idx = 0
+        sample_idx += 1
+    write_to_file_end(data_path, "]")
 
 def get_end_idx(text: str, model_name: str, signal: int, prompt: str):
     """get the end idx in text that signal first appears, in tokenized index

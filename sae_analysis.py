@@ -1,5 +1,6 @@
 import torch
 import os
+from pathlib import Path
 import json
 from utils.analysis_utils import top_k_abs_acts_args, get_args_desc, get_end_idx
 from utils.loading_utils import load_dataset
@@ -13,6 +14,8 @@ SIGNAL_EXP = int(os.getenv("SIGNAL_EXP", None))
 STREAM = os.getenv("STREAM", "res")
 TOP_K = int(os.getenv("TOP_K", 1))
 LAYER = int(os.getenv("LAYER", -1))
+CACHE_PATH = "./cache/ckpt.json"
+CACHE_EXP_PATH = "./cache/ckpt_exp.json"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 _, data, _, prompt_key, pre_prompt = load_dataset(0, DATASET)
@@ -35,10 +38,28 @@ acts_exp_resid = acts_exp_resid[:chop_off_exp, :, :]
 acts_resid_args = top_k_abs_acts_args(acts_resid, TOP_K, layer=LAYER)      # (samples, layers, TOP_K)
 acts_exp_resid_args = top_k_abs_acts_args(acts_exp_resid, TOP_K, layer=LAYER)
 
-resid_desc = get_args_desc(MODEL, STREAM, acts_resid_args)
-with open(DATA_PATH + f"acts_desc_{INDEX}.json", "w") as f:
-    json.dump(resid_desc, f, indent=4)
+if Path(CACHE_PATH).exists():
+    with open(CACHE_PATH, "r") as cache:
+        obj = json.load(cache)
+    resid_desc = get_args_desc(
+        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_{INDEX}.json", CACHE_PATH,
+        sample_idx=obj.sample_idx, layer_idx=obj.layer_idx, neuron_idx=obj.neuron_idx
+    )
+else:
+    os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
+    resid_desc = get_args_desc(
+        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_{INDEX}.json", CACHE_PATH
+    )
 
-resid_exp_desc = get_args_desc(MODEL, STREAM, acts_exp_resid_args)
-with open(DATA_PATH + f"acts_exp_desc_{INDEX}.json", "w") as f:
-    json.dump(resid_exp_desc, f, indent=4)
+if Path(CACHE_EXP_PATH).exists():
+    with open(CACHE_EXP_PATH, "r") as cache:
+        obj = json.load(cache)
+    resid_exp_desc = get_args_desc(
+        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_{INDEX}.json", CACHE_EXP_PATH,
+        sample_idx=obj.sample_idx, layer_idx=obj.layer_idx, neuron_idx=obj.neuron_idx
+    )
+else:
+    os.makedirs(os.path.dirname(CACHE_EXP_PATH), exist_ok=True)
+    resid_exp_desc = get_args_desc(
+        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_{INDEX}.json", CACHE_EXP_PATH
+    )
