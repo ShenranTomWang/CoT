@@ -62,5 +62,5 @@ if Path(CACHE_EXP_PATH).exists():
 else:
     os.makedirs(os.path.dirname(CACHE_EXP_PATH), exist_ok=True)
     resid_exp_desc = get_args_desc(
-        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_exp_{INDEX}.json", CACHE_EXP_PATH
+        MODEL, STREAM, acts_exp_resid_args, DATA_PATH + f"acts_exp_desc_{INDEX}.json", CACHE_EXP_PATH
     )
