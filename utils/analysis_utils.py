@@ -55,8 +55,8 @@ def fetch_neuron_description(model_name: str, layer: int, neuron_idx: int, strea
         resp.raise_for_status()
         
 def checkpoint(path: str, content: object):
-    with open(path, "w"):
-        json.dumps(content, indent=4)
+    with open(path, "w") as f:
+        json.dump(content, f, indent=4)
         
 def write_to_file_end(path: str, content: str):
     with open(path, "a") as f:
