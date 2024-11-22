@@ -34,6 +34,7 @@ acts_resid = torch.load(DATA_PATH + f"acts_resid_generation_{INDEX}.pt", map_loc
 acts_resid = acts_resid[:chop_off, :, :]
 acts_exp_resid = torch.load(DATA_PATH + f"acts_exp_resid_generation_{INDEX}.pt", map_location=device)
 acts_exp_resid = acts_exp_resid[:chop_off_exp, :, :]
+print(f"acts_resid.shape: {acts_resid.shape}, acts_exp_resid.shape: {acts_exp_resid.shape}")
 
 acts_resid_args = top_k_abs_acts_args(acts_resid, TOP_K, layer=LAYER)      # (samples, layers, TOP_K)
 acts_exp_resid_args = top_k_abs_acts_args(acts_exp_resid, TOP_K, layer=LAYER)
@@ -48,7 +49,7 @@ if Path(CACHE_PATH).exists():
 else:
     os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
     resid_desc = get_args_desc(
-        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_{INDEX}.json", CACHE_PATH
+        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_exp_{INDEX}.json", CACHE_PATH
     )
 
 if Path(CACHE_EXP_PATH).exists():

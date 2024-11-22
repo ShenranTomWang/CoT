@@ -59,8 +59,9 @@ def checkpoint(path: str, content: object):
         json.dumps(content, indent=4)
         
 def write_to_file_end(path: str, content: str):
-    with open(path, "a") as f:
-        f.write(content)
+    # with open(path, "a") as f:
+    #     f.write(content)
+    pass
 
 def get_args_desc(
     model_name: str,
@@ -108,7 +109,7 @@ def get_args_desc(
             write_to_file_end(data_path, "        ]" + (",\n        [\n" if layer_idx + 1 != args.shape[1] else "\n"))
             neuron_idx = 0
             layer_idx += 1
-        write_to_file_end(data_path, "    ]" + (",\n    [\n" if sample_idx + 1 != args.shape[1] else "\n"))
+        write_to_file_end(data_path, "    ]" + (",\n    [\n" if sample_idx + 1 != args.shape[0] else "\n"))
         layer_idx = 0
         sample_idx += 1
     write_to_file_end(data_path, "]")
