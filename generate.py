@@ -1,19 +1,3 @@
-"""
-This script generates and saves activations from a specified model based on the input prompt.
-Usage:
-    python generate.py -i <input_prompt> -m <model_name> [-s <stream>] [-o <output_file>]
-Arguments:
-    -i, --input (str): Input prompt to generate activations for. (required)
-    -m, --model (str): Name of the model to use for generating activations. (required)
-    -s, --stream (str): Stream to take activations from, one of 'attn' or 'res'. Defaults to 'res'. (optional)
-    -o, --output (str): Output file to write activations to. Defaults to "./experimental_data/<model_name>/". (optional)
-Configuration:
-    The script reads model weights directory from a configuration file named "config.ini".
-Output:
-    Saves the activations to the specified output file(s) in PyTorch tensor format.
-    - For 'res' stream: Saves activations to "<output_file>_res.pt".
-    - For 'attn' stream: Saves activations to "<output_file>_q.pt", "<output_file>_k.pt", and "<output_file>_v.pt".
-"""
 import torch
 import os
 from utils.data_collection_utils import get_layer_acts_post_resid, get_layer_acts_attn
