@@ -85,12 +85,13 @@ def get_args_desc(
         layer_idx (int): layer index to pick up from. Defaults to 0
         neuron_idx (int): neuron index to pick up from. Defaults to 0
     """
-    write_to_file_end(data_path, "[\n")
+    if sample_idx == 0 and layer_idx == 0 and neuron_idx == 0:
+        write_to_file_end(data_path, "[\n")
     while sample_idx < args.shape[0]:
-        if sample_idx == 0:
+        if sample_idx == 0 and layer_idx == 0 and neuron_idx == 0:
             write_to_file_end(data_path, "    [\n")
         while layer_idx < args.shape[1]:
-            if layer_idx == 0:
+            if layer_idx == 0 and neuron_idx == 0:
                 write_to_file_end(data_path, "        [\n")
             while neuron_idx < args.shape[2]:
                 print(f"sample {sample_idx}, layer {layer_idx}, neuron {neuron_idx}")
