@@ -39,18 +39,18 @@ print(f"acts_resid.shape: {acts_resid.shape}, acts_exp_resid.shape: {acts_exp_re
 acts_resid_args = top_k_abs_acts_args(acts_resid, TOP_K, layer=LAYER)      # (samples, layers, TOP_K)
 acts_exp_resid_args = top_k_abs_acts_args(acts_exp_resid, TOP_K, layer=LAYER)
 
-# if Path(CACHE_PATH).exists():
-#     with open(CACHE_PATH, "r") as cache:
-#         obj = json.load(cache)
-#     resid_desc = get_args_desc(
-#         MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_{INDEX}.json", CACHE_PATH,
-#         sample_idx=obj.sample_idx, layer_idx=obj.layer_idx, neuron_idx=obj.neuron_idx
-#     )
-# else:
-#     os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
-#     resid_desc = get_args_desc(
-#         MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_exp_{INDEX}.json", CACHE_PATH
-#     )
+if Path(CACHE_PATH).exists():
+    with open(CACHE_PATH, "r") as cache:
+        obj = json.load(cache)
+    resid_desc = get_args_desc(
+        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_{INDEX}.json", CACHE_PATH,
+        sample_idx=obj.sample_idx, layer_idx=obj.layer_idx, neuron_idx=obj.neuron_idx
+    )
+else:
+    os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
+    resid_desc = get_args_desc(
+        MODEL, STREAM, acts_resid_args, DATA_PATH + f"acts_desc_exp_{INDEX}.json", CACHE_PATH
+    )
 
 if Path(CACHE_EXP_PATH).exists():
     with open(CACHE_EXP_PATH, "r") as cache:
