@@ -53,9 +53,9 @@ def get_layer_acts_attn(statements, model: HookedTransformer, layers: list) -> t
         hooks.append((get_act_name("k", layer=layer), get_act_k))
         hooks.append((get_act_name("v", layer=layer), get_act_v))
 
-    _ = model.run_with_hooks(statements, fwd_hooks=hooks, return_type=None)
+    out = model.run_with_hooks(statements, fwd_hooks=hooks, return_type="logits")
 
-    return acts_q, acts_k, acts_v
+    return out, acts_q, acts_k, acts_v
 
 def top_p_sampling(logits, p=0.9):
     """
@@ -207,9 +207,6 @@ def obtain_acts_diff_res(
     diffs_resid = []
     acts_resid = []
     acts_resid_exp = []
-    diffs_q, diffs_k, diffs_v = [], [], []
-    acts_q, acts_k, acts_v = [], [], []
-    acts_q_exp, acts_k_exp, acts_v_exp = [], [], []
     max_idx = len(queries) if max_idx == -1 else max_idx
     for batch_idx in tqdm(range(start_idx, max_idx, batch_size), desc="Processing batches"):
         batch = queries.iloc[batch_idx : batch_idx + batch_size][prompt_key].tolist()
@@ -223,22 +220,7 @@ def obtain_acts_diff_res(
         diff_resid = {layer: act_resid_exp[layer] - act_resid[layer] for layer in act_resid.keys()}
         diffs_resid.append(diff_resid)
 
-        # act_q, act_k, act_v = get_layer_acts_attn(batch, model, layers)
-        # act_q_exp, act_k_exp, act_v_exp = get_layer_acts_attn(batch_exp, model, layers)
-        # diff_q = {layer: act_q_exp[layer] - act_q[layer] for layer in act_q.keys()}
-        # diff_k = {layer: act_k_exp[layer] - act_k[layer] for layer in act_k.keys()}
-        # diff_v = {layer: act_v_exp[layer] - act_v[layer] for layer in act_v.keys()}
-        # diffs_q.append(diff_q)
-        # diffs_k.append(diff_k)
-        # diffs_v.append(diff_v)
-        # acts_q.append(act_q)
-        # acts_k.append(act_k)
-        # acts_v.append(act_v)
-        # acts_q_exp.append(act_q_exp)
-        # acts_k_exp.append(act_k_exp)
-        # acts_v_exp.append(act_v_exp)
-
-    return diffs_resid, acts_resid, acts_resid_exp # , diffs_q, acts_q, acts_q_exp, diffs_k, acts_k, acts_k_exp, diffs_v, acts_v, acts_v_exp
+    return diffs_resid, acts_resid, acts_resid_exp
 
 def obtain_acts_diff_attn(
     model: HookedTransformer, 
@@ -276,8 +258,8 @@ def obtain_acts_diff_attn(
         batch = [train_prompt + query for query in batch]
         batch_exp = [train_prompt + query + exp for query in batch]
 
-        act_q, act_k, act_v = get_layer_acts_attn(batch, model, layers)
-        act_q_exp, act_k_exp, act_v_exp = get_layer_acts_attn(batch_exp, model, layers)
+        _, act_q, act_k, act_v = get_layer_acts_attn(batch, model, layers)
+        _, act_q_exp, act_k_exp, act_v_exp = get_layer_acts_attn(batch_exp, model, layers)
         diff_q = {layer: act_q_exp[layer] - act_q[layer] for layer in act_q.keys()}
         diff_k = {layer: act_k_exp[layer] - act_k[layer] for layer in act_k.keys()}
         diff_v = {layer: act_v_exp[layer] - act_v[layer] for layer in act_v.keys()}

@@ -14,47 +14,35 @@ Output:
     - For 'res' stream: Saves activations to "<output_file>_res.pt".
     - For 'attn' stream: Saves activations to "<output_file>_q.pt", "<output_file>_k.pt", and "<output_file>_v.pt".
 """
-import argparse
 import torch
+import os
 from utils.data_collection_utils import get_layer_acts_post_resid, get_layer_acts_attn
 from utils.loading_utils import load_model
 
+INPUT = os.getenv("INPUT")
+MODEL = os.getenv("MODEL")
+STREAM = os.getenv("STREAM")
+OUTPUT = os.getenv("OUTPUT", f"./experimental_data/{MODEL}/")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-parser = argparse.ArgumentParser()
-
-parser.add_argument("-i", "--input", type=str, help="Input prompt", required=True)
-parser.add_argument("-m", "--model", type=str, help="Model name", required=True)
-parser.add_argument("-s", "--stream", type=str, help="Stream to take activations, one of 'attn' or 'res'", required=False, default="res")
-parser.add_argument("-o", "--output", type=str, help="Output file to write to", required=False, default=None)
-
 if __name__ == "__main__":
-    args = parser.parse_args()
-
-    input = args.input
-    model = args.model
-    stream = args.stream
-    output = args.output
-    if output == None:
-        output = f"./experimental_data/{model}/"
-    
-    model = load_model(model, device, dtype=torch.bfloat16)
+    model = load_model(MODEL, device, dtype=torch.bfloat16)
     layers = range(len(model.blocks))
     
-    if stream == "res":
+    if STREAM == "res":
         _, acts_resid = get_layer_acts_post_resid([input], model, layers)
         acts_resid = torch.stack([acts_resid[key] for key in acts_resid.keys()], dim=0)
         acts_resid = acts_resid[:, 0, :]
-        torch.save(acts_resid, output + "acts_res.pt")
-    elif stream == "attn":
+        torch.save(acts_resid, OUTPUT + "acts_res.pt")
+    elif STREAM == "attn":
         _, acts_q, acts_k, acts_v = get_layer_acts_attn([input], model, layers)
-        acts_q = torch.stack([acts_resid[key] for key in acts_q.keys()], dim=0)
-        acts_k = torch.stack([acts_resid[key] for key in acts_k.keys()], dim=0)
-        acts_v = torch.stack([acts_resid[key] for key in acts_v.keys()], dim=0)
+        acts_q = torch.stack([acts_q[key] for key in acts_q.keys()], dim=0)
+        acts_k = torch.stack([acts_k[key] for key in acts_k.keys()], dim=0)
+        acts_v = torch.stack([acts_v[key] for key in acts_v.keys()], dim=0)
         acts_q = acts_q[:, 0, :]
         acts_k = acts_k[:, 0, :]
         acts_v = acts_v[:, 0, :]
-        torch.save(acts_q, output + "acts_q.pt")
-        torch.save(acts_k, output + "acts_k.pt")
-        torch.save(acts_v, output + "acts_v.pt")
+        torch.save(acts_q, OUTPUT + "acts_q.pt")
+        torch.save(acts_k, OUTPUT + "acts_k.pt")
+        torch.save(acts_v, OUTPUT + "acts_v.pt")
         
