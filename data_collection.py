@@ -1,5 +1,5 @@
 import torch
-from utils.data_collection_utils import obtain_act_diff
+from utils.data_collection_utils import obtain_acts_diff_res
 from utils.loading_utils import load_data, load_model
 import os
 import configparser
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     print(model)
     
     layers = list(range(len(model.blocks))) if LAYERS == "ALL" else LAYERS
-    diffs_resid, acts_resid, acts_resid_exp = obtain_act_diff(
+    diffs_resid, acts_resid, acts_resid_exp = obtain_acts_diff_res(
         model,
         test,
         1,
