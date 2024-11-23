@@ -16,7 +16,6 @@ Output:
 """
 import argparse
 import torch
-import configparser
 from utils.data_collection_utils import get_layer_acts_post_resid, get_layer_acts_attn
 from utils.loading_utils import load_model
 
@@ -25,12 +24,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-i", "--input", type=str, help="Input prompt", required=True)
-parser.add_argument("-m", "--model", tyoe=str, help="Model name", required=True)
+parser.add_argument("-m", "--model", type=str, help="Model name", required=True)
 parser.add_argument("-s", "--stream", type=str, help="Stream to take activations, one of 'attn' or 'res'", required=False, default="res")
 parser.add_argument("-o", "--output", type=str, help="Output file to write to", required=False, default=None)
-
-config = configparser.ConfigParser()
-config = config.read("./config.ini")
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -42,7 +38,6 @@ if __name__ == "__main__":
     if output == None:
         output = f"./experimental_data/{model}/"
     
-    model = config[model]["weights_dir"]
     model = load_model(model, device, dtype=torch.bfloat16)
     layers = range(len(model.blocks))
     
@@ -50,7 +45,7 @@ if __name__ == "__main__":
         _, acts_resid = get_layer_acts_post_resid([input], model, layers)
         acts_resid = torch.stack([acts_resid[key] for key in acts_resid.keys()], dim=0)
         acts_resid = acts_resid[:, 0, :]
-        torch.save(acts_resid, output + "_res.pt")
+        torch.save(acts_resid, output + "acts_res.pt")
     elif stream == "attn":
         _, acts_q, acts_k, acts_v = get_layer_acts_attn([input], model, layers)
         acts_q = torch.stack([acts_resid[key] for key in acts_q.keys()], dim=0)
@@ -59,7 +54,7 @@ if __name__ == "__main__":
         acts_q = acts_q[:, 0, :]
         acts_k = acts_k[:, 0, :]
         acts_v = acts_v[:, 0, :]
-        torch.save(acts_q, output + "_q.pt")
-        torch.save(acts_k, output + "_k.pt")
-        torch.save(acts_v, output + "_v.pt")
+        torch.save(acts_q, output + "acts_q.pt")
+        torch.save(acts_k, output + "acts_k.pt")
+        torch.save(acts_v, output + "acts_v.pt")
         
