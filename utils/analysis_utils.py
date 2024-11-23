@@ -59,7 +59,7 @@ def checkpoint(path: str, content: object):
         json.dump(content, f, indent=4)
         
 def write_to_file_end(path: str, content: str):
-    with open(path, "a") as f:
+    with open(path, "a", encoding="utf-8") as f:
         f.write(content)
 
 def get_args_desc(
