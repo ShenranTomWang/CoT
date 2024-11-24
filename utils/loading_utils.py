@@ -69,10 +69,10 @@ def load_model_transformers(model_name: str, device='cpu', dtype=torch.bfloat16)
     model = AutoModelForCausalLM.from_pretrained(weights_directory, torch_dtype=dtype, device_map=device)
     return model
 
-def load_tokenizer(model_name: str, device='cpu') -> AutoTokenizer:
+def load_tokenizer(model_name: str, device='cpu', dtype=torch.bfloat16) -> AutoTokenizer:
     print(f"Loading tokenizer {model_name}...")
     weights_directory = "./models/" + config_model[model_name]['weights_directory']
-    model = AutoTokenizer.from_pretrained(weights_directory, dtype=torch.bfloat16, device=device)
+    model = AutoTokenizer.from_pretrained(weights_directory, dtype=dtype, device=device)
     return model
 
 def get_pretrained_model(
