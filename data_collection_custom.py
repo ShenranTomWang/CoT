@@ -14,12 +14,12 @@ if __name__ == "__main__":
     layers = range(len(model.blocks))
     
     if STREAM == "res":
-        _, acts_resid = get_layer_acts_post_resid([input], model, layers)
+        _, acts_resid = get_layer_acts_post_resid([INPUT], model, layers)
         acts_resid = torch.stack([acts_resid[key] for key in acts_resid.keys()], dim=0)
         acts_resid = acts_resid[:, 0, :]
         torch.save(acts_resid, OUTPUT + "acts_res.pt")
     elif STREAM == "attn":
-        _, acts_q, acts_k, acts_v = get_layer_acts_attn([input], model, layers)
+        _, acts_q, acts_k, acts_v = get_layer_acts_attn([INPUT], model, layers)
         acts_q = torch.stack([acts_q[key] for key in acts_q.keys()], dim=0)
         acts_k = torch.stack([acts_k[key] for key in acts_k.keys()], dim=0)
         acts_v = torch.stack([acts_v[key] for key in acts_v.keys()], dim=0)
