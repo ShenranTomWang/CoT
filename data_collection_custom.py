@@ -1,7 +1,8 @@
 import torch
 import os
-from utils.data_collection_utils import get_layer_acts_post_resid, get_layer_acts_attn
+from utils.data_collection_utils import get_layer_acts_post_resid, get_layer_acts_attn, get_layer_acts
 from utils.loading_utils import load_model
+torch.set_grad_enabled(False)
 
 INPUT = os.getenv("INPUT")
 MODEL = os.getenv("MODEL")
@@ -11,6 +12,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
     model = load_model(MODEL, device, dtype=torch.bfloat16)
+    print(model)
     layers = range(len(model.blocks))
     
     if STREAM == "res":
@@ -23,10 +25,14 @@ if __name__ == "__main__":
         acts_q = torch.stack([acts_q[key] for key in acts_q.keys()], dim=0)
         acts_k = torch.stack([acts_k[key] for key in acts_k.keys()], dim=0)
         acts_v = torch.stack([acts_v[key] for key in acts_v.keys()], dim=0)
-        acts_q = acts_q[:, 0, :]
-        acts_k = acts_k[:, 0, :]
-        acts_v = acts_v[:, 0, :]
+        acts_q = acts_q[:, 0, :, :]
+        acts_k = acts_k[:, 0, :, :]
+        acts_v = acts_v[:, 0, :, :]
         torch.save(acts_q, OUTPUT + "acts_q.pt")
         torch.save(acts_k, OUTPUT + "acts_k.pt")
         torch.save(acts_v, OUTPUT + "acts_v.pt")
+    else:
+        _, acts = get_layer_acts([INPUT], model, layers, STREAM)
+        acts = torch.stack([acts[key] for key in acts.keys()], dim=0)
+        torch.save(acts, OUTPUT + f"acts_{STREAM}.pt")
         

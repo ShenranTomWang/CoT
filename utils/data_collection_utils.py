@@ -7,6 +7,28 @@ import torch
 import pandas as pd
 from tqdm import tqdm
 
+def get_layer_acts(statements, model: HookedTransformer, layers: list, hook_name: str) -> dict:
+    """
+    Get given layer activations for the statements. Activations are obtained after the last token is read.
+    args:
+        statements: The statements to obtain activations for.
+        model: The model to use.
+        layers: The layers (int) to obtain activations for as a list.
+        'hook_name': The name of the hook to use.
+    returns: dictionary of stacked activations of shape (batch_size, seqlen, hidden_channels)
+    """
+    acts = {}
+    def get_act(value: torch.Tensor, hook: HookPoint):
+        acts[hook.name] = value
+
+    hooks = []
+    for layer in layers:
+        hooks.append((get_act_name(hook_name, layer=layer), get_act))
+
+    out = model.run_with_hooks(statements, fwd_hooks=hooks, return_type="logits")
+
+    return out, acts
+
 def get_layer_acts_post_resid(statements, model: HookedTransformer, layers: list) -> dict:
     """
     Get given layer post residual activations for the statements. Activations are obtained after the last token is read.
@@ -14,19 +36,9 @@ def get_layer_acts_post_resid(statements, model: HookedTransformer, layers: list
         statements: The statements to obtain activations for.
         model: The model to use.
         layers: The layers (int) to obtain activations for as a list.
-    returns: dictionary of stacked activations of shape (batch_size, hidden_channels)
+    returns: dictionary of stacked activations of shape (batch_size, seqlen, hidden_channels)
     """
-    acts = {}
-    def get_act(value: torch.Tensor, hook: HookPoint):
-        acts[hook.name] = value[:, -1, :]
-
-    hooks = []
-    for layer in layers:
-        hooks.append((get_act_name("resid_post", layer=layer), get_act))
-
-    out = model.run_with_hooks(statements, fwd_hooks=hooks, return_type="logits")
-
-    return out, acts
+    return get_layer_acts(statements, model, layers, "post_resid")
 
 def get_layer_acts_attn(statements, model: HookedTransformer, layers: list) -> tuple:
     """
@@ -35,26 +47,11 @@ def get_layer_acts_attn(statements, model: HookedTransformer, layers: list) -> t
         statements: The statements to obtain activations for.
         model: The model to use.
         layers: The layers (int) to obtain activations for as a list.
-    returns: tuple of dictionary of stacked q, k, v activations of shape (batch_size, n_attn_heads, d_k(headdim))
+    returns: tuple of dictionary of stacked q, k, v activations of shape (batch_size, seqlen, n_attn_heads, d_k(headdim))
     """
-    acts_q = {}
-    acts_k = {}
-    acts_v = {}
-    def get_act_q(value: torch.Tensor, hook: HookPoint):
-        acts_q[hook.name] = value[:, -1, :, :]
-    def get_act_k(value: torch.Tensor, hook: HookPoint):
-        acts_k[hook.name] = value[:, -1, :, :]
-    def get_act_v(value: torch.Tensor, hook: HookPoint):
-        acts_v[hook.name] = value[:, -1, :, :]
-
-    hooks = []
-    for layer in layers:
-        hooks.append((get_act_name("q", layer=layer), get_act_q))
-        hooks.append((get_act_name("k", layer=layer), get_act_k))
-        hooks.append((get_act_name("v", layer=layer), get_act_v))
-
-    out = model.run_with_hooks(statements, fwd_hooks=hooks, return_type="logits")
-
+    out, acts_q = get_layer_acts(statements, model, layers, "q")
+    out, acts_k = get_layer_acts(statements, model, layers, "k")
+    out, acts_v = get_layer_acts(statements, model, layers, "v")
     return out, acts_q, acts_k, acts_v
 
 def top_p_sampling(logits, p=0.9):
@@ -215,6 +212,8 @@ def obtain_acts_diff_res(
 
         _, act_resid = get_layer_acts_post_resid(batch, model, layers)
         _, act_resid_exp = get_layer_acts_post_resid(batch_exp, model, layers)
+        acts_resid = acts_resid[:, -1, :]
+        acts_resid_exp = acts_resid_exp[:, -1, :]
         acts_resid.append(act_resid)
         acts_resid_exp.append(act_resid_exp)
         diff_resid = {layer: act_resid_exp[layer] - act_resid[layer] for layer in act_resid.keys()}
