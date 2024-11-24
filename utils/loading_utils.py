@@ -63,12 +63,17 @@ def load_model(model_name: str, device='cpu', dtype=torch.bfloat16, verbose=Fals
     model = get_pretrained_model(weights_directory, dtype=dtype, device=device, verbose=verbose)
     return model
 
+def load_model_transformers(model_name: str, device='cpu', dtype=torch.bfloat16) -> AutoModelForCausalLM:
+    print(f"Loading model {model_name}...")
+    weights_directory = "./models/" + config_model[model_name]['weights_directory']
+    model = AutoModelForCausalLM.from_pretrained(weights_directory, torch_dtype=dtype, device_map=device)
+    return model
+
 def load_tokenizer(model_name: str, device='cpu') -> AutoTokenizer:
     print(f"Loading tokenizer {model_name}...")
     weights_directory = "./models/" + config_model[model_name]['weights_directory']
     model = AutoTokenizer.from_pretrained(weights_directory, dtype=torch.bfloat16, device=device)
     return model
-
 
 def get_pretrained_model(
     path_to_model: str,
@@ -164,7 +169,6 @@ def get_pretrained_model(
     )
     return hooked_model
 
-
 def get_pretrained_state_dict(
     cfg: HookedTransformerConfig,
     hf_model
@@ -222,7 +226,6 @@ def get_pretrained_state_dict(
         )
 
     return state_dict
-
 
 def get_pretrained_model_config(
     model_path: str,
@@ -304,7 +307,6 @@ def get_pretrained_model_config(
 
     cfg = HookedTransformerConfig.from_dict(cfg_dict)
     return cfg
-
 
 def convert_hf_model_config(model_name: str, **kwargs):
     """

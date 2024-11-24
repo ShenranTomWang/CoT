@@ -1,11 +1,18 @@
-from utils.loading_utils import get_pretrained_model
 from transformer_lens import HookedTransformer
 from transformer_lens.hook_points import HookPoint
 from transformer_lens.utils import get_act_name
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import pandas as pd
 from tqdm import tqdm
+
+def generate_single_line(model: AutoModelForCausalLM, tokenizer: AutoTokenizer, query: str, device="cpu") -> str:
+    with torch.no_grad():
+        input_ids = tokenizer(query, return_tensors="pt").input_ids.to(device)
+        output_ids = model.generate(input_ids, max_length=100000)[0, input_ids.shape[1]:]
+        answer = tokenizer.decode(output_ids)
+        
+    return answer
 
 def get_layer_acts(statements, model: HookedTransformer, layers: list, hook_name: str) -> dict:
     """
@@ -148,8 +155,7 @@ def obtain_single_line_generation_act(
     exp: str,
     layers: list,
     train_prompt: str,
-    tokenizer: AutoTokenizer,
-    p: float = 0.9
+    tokenizer: AutoTokenizer
 ) -> tuple:
     """obtain activation difference between query and query + exp.
 
@@ -159,7 +165,6 @@ def obtain_single_line_generation_act(
         exp (str): experimental string
         layers (list): layers to obtain activations
         train_prompt (str): prompt added before query
-        p (int): p for top p sampling, defaults to 0.9
 
     Returns:
         tuple: tuple<list<torch.Tensor>> the activation of query and query + exp at each timestep, as well as generated output at each timestep
