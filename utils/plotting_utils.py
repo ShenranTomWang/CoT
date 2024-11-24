@@ -18,7 +18,7 @@ def draw_heatmap(tensor: torch.Tensor, title: str, axis=None):
     ax.set_ylabel('Layer')
     ax.set_title(title)
     
-def draw_attention(attention_weights: torch.Tensor, tokens: list, title: str, axis=None):
+def draw_attention(attention_weights: torch.Tensor, tokens: list, title: str, axis=None, cmap='viridis'):
     """
     Draws a heatmap of the self-attention weights with token descriptions.
     args:
@@ -26,9 +26,10 @@ def draw_attention(attention_weights: torch.Tensor, tokens: list, title: str, ax
         tokens: The list of token descriptions.
         title: The title of the heatmap.
         axis: The axis to draw the heatmap on (for side-by-side plots), default to None if not needed
+        cmap: The colormap to use for the heatmap, default to 'viridis'
     """
     data = attention_weights.transpose(0, 1).cpu().numpy()
-    sns.heatmap(data, cmap='viridis', cbar=True, xticklabels=tokens, yticklabels=tokens, ax=axis)
+    sns.heatmap(data, cmap=cmap, cbar=True, xticklabels=tokens, yticklabels=tokens, ax=axis)
 
     ax = axis if axis is not None else plt.gca()
     ax.set_xlabel('Query Tokens')
