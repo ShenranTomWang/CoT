@@ -16,5 +16,5 @@ if __name__ == "__main__":
     
     output = generate_single_line(model, tokenizer, INPUT, device)
     
-    with open(OUTPUT + "generated.txt", "w") as f:
+    with open(OUTPUT + "generation.txt", "w") as f:
         f.write(output)
