@@ -7,6 +7,7 @@ torch.set_grad_enabled(False)
 INPUT = os.getenv("INPUT")
 MODEL = os.getenv("MODEL")
 OUTPUT = os.getenv("OUTPUT", f"./experimental_data/{MODEL}/")
+FILENAME = os.getenv("FILENAME", "generation.txt")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
@@ -16,5 +17,5 @@ if __name__ == "__main__":
     
     output = generate_single_line(model, tokenizer, INPUT, device)
     
-    with open(OUTPUT + "generation.txt", "w") as f:
+    with open(OUTPUT + FILENAME, "w") as f:
         f.write(output)
