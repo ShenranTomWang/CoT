@@ -18,4 +18,4 @@ if __name__ == "__main__":
     output = generate_single_line(model, tokenizer, INPUT, device)
     
     with open(OUTPUT + FILENAME, "w") as f:
-        f.write(output)
+        f.write(INPUT + output)
