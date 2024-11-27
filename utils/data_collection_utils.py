@@ -4,6 +4,7 @@ from transformer_lens.utils import get_act_name
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import pandas as pd
+import os
 from tqdm import tqdm
 
 def generate_single_line(model: AutoModelForCausalLM, tokenizer: AutoTokenizer, query: str, device="cpu") -> str:
@@ -253,7 +254,6 @@ def obtain_acts_diff_attn(
         The activation difference between the model's predictions for the given queries, original activations, experimental activations.
         tuple<list<map<str, torch.Tensor>>>
     """
-    diffs_q, diffs_k, diffs_v = [], [], []
     acts_q, acts_k, acts_v = [], [], []
     acts_q_exp, acts_k_exp, acts_v_exp = [], [], []
     max_idx = len(queries) if max_idx == -1 else max_idx
@@ -264,12 +264,6 @@ def obtain_acts_diff_attn(
 
         _, act_q, act_k, act_v = get_layer_acts_attn(batch, model, layers)
         _, act_q_exp, act_k_exp, act_v_exp = get_layer_acts_attn(batch_exp, model, layers)
-        diff_q = {layer: act_q_exp[layer] - act_q[layer] for layer in act_q.keys()}
-        diff_k = {layer: act_k_exp[layer] - act_k[layer] for layer in act_k.keys()}
-        diff_v = {layer: act_v_exp[layer] - act_v[layer] for layer in act_v.keys()}
-        diffs_q.append(diff_q)
-        diffs_k.append(diff_k)
-        diffs_v.append(diff_v)
         acts_q.append(act_q)
         acts_k.append(act_k)
         acts_v.append(act_v)
@@ -277,4 +271,57 @@ def obtain_acts_diff_attn(
         acts_k_exp.append(act_k_exp)
         acts_v_exp.append(act_v_exp)
 
-    return diffs_q, acts_q, acts_q_exp, diffs_k, acts_k, acts_k_exp, diffs_v, acts_v, acts_v_exp
+    return acts_q, acts_q_exp, acts_k, acts_k_exp, acts_v, acts_v_exp
+
+def obtain_acts_diff(
+    model: HookedTransformer, 
+    queries: pd.DataFrame, 
+    batch_size: int, 
+    exp: str, 
+    layers: list, 
+    train_prompt: str, 
+    stream: str,
+    prompt_key: str = "sent", 
+    start_idx: int = 0,
+    max_idx: int = -1,
+    save_path: str = None
+) -> tuple:
+    """
+    Obtains the activation difference between queries and queries + exp in any stream.
+    args:
+        model: The model to use.
+        queries: The queries to use.
+        batch_size: The batch size to use.
+        exp: The prompt to experiment with, added to the end of the sentence.
+        layers: The list of layers (int) to obtain diff.
+        train_prompt: The prompt used to train the model.
+        stream: The stream to use.
+        prompt_key: The key in the queries dataframe that contains the prompt.
+        start_idx: The starting index of data collection. Set to 0 by default.
+        max_idx: The maximum number of queries to use. Set to -1 to use all queries.
+        save_path: The path to save the activations to. Set to None by default for not saving.
+    returns:
+        The activation difference between the model's predictions for the given queries, original activations, experimental activations.
+        tuple<list<map<str, torch.Tensor>>>
+    """
+    acts = []
+    acts_exp = []
+    max_idx = len(queries) if max_idx == -1 else max_idx
+    for batch_idx in tqdm(range(start_idx, max_idx, batch_size), desc="Processing batches"):
+        batch = queries.iloc[batch_idx : batch_idx + batch_size][prompt_key].tolist()
+        batch = [train_prompt + query for query in batch]
+        batch_exp = [train_prompt + query + exp for query in batch]
+
+        _, act = get_layer_acts(batch, model, layers, stream)
+        _, act_exp = get_layer_acts(batch_exp, model, layers, stream)
+        if save_path is None:
+            acts.append(act)
+            acts_exp.append(act_exp)
+        else:
+            if not os.path.exists(save_path):
+                os.makedirs(save_path, exist_ok=True)
+            torch.save(act, f"{save_path}acts_{stream}_{batch_idx}.pt")
+            torch.save(act_exp, f"{save_path}acts_{stream}_exp_{batch_idx}.pt")
+
+    if save_path is None:
+        return acts, acts_exp
