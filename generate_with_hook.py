@@ -12,10 +12,14 @@ MODEL_NAME = os.getenv("MODEL")
 PRE_PROMPT = config[DATASET]["pre_prompt"] + " "
 PROMPT_KEY = config[DATASET]["prompt_key"]
 N_SHOTS = 0
+OUTPUT = "./experimental_data/{MODEL_NAME}/{DATASET}/"
 INDEX = int(os.getenv("INDEX"))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LAYERS = "ALL"    # Layers to look at activations, "ALL" or list of int
 torch.set_grad_enabled(False)
+
+if not os.path.exists(OUTPUT):
+    os.makedirs(OUTPUT, exist_ok=True)
 
 if __name__ == "__main__":
     print(f"Executing on device {device}")
@@ -41,9 +45,9 @@ if __name__ == "__main__":
     acts_exp_resid = torch.stack([torch.stack([acts_resid_exp[i][layer] for layer in acts_resid_exp[i].keys()]) for i in range(len(acts_resid_exp))])
     acts_resid = acts_resid[:, :, 0, :]
     acts_exp_resid = acts_exp_resid[:, :, 0, :]
-    torch.save(acts_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_resid_generation_{INDEX}.pt")
-    torch.save(acts_exp_resid, f"./experimental_data/{MODEL_NAME}/{DATASET}/acts_exp_resid_generation_{INDEX}.pt")
-    with open(f"./experimental_data/{MODEL_NAME}/{DATASET}/generation_{INDEX}.txt", "w") as f:
+    torch.save(acts_resid, f"{OUTPUT}acts_resid_generation_{INDEX}.pt")
+    torch.save(acts_exp_resid, f"{OUTPUT}acts_exp_resid_generation_{INDEX}.pt")
+    with open(f"{OUTPUT}generation_{INDEX}.txt", "w") as f:
         f.write(generation)
-    with open(f"./experimental_data/{MODEL_NAME}/{DATASET}/generation_exp_{INDEX}.txt", "w") as f:
+    with open(f"{OUTPUT}generation_exp_{INDEX}.txt", "w") as f:
         f.write(generation_exp)

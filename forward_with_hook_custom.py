@@ -10,6 +10,9 @@ STREAM = os.getenv("STREAM")
 OUTPUT = os.getenv("OUTPUT", f"./experimental_data/{MODEL}/")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+if not os.path.exists(OUTPUT):
+    os.makedirs(OUTPUT, exist_ok=True)
+
 if __name__ == "__main__":
     model = load_model(MODEL, device, dtype=torch.bfloat16)
     print(model)
