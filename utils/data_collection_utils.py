@@ -320,8 +320,8 @@ def obtain_acts_diff(
         else:
             if not os.path.exists(save_path):
                 os.makedirs(save_path, exist_ok=True)
-            torch.save(act, f"{save_path}acts_{stream}_{batch_idx}.pt")
-            torch.save(act_exp, f"{save_path}acts_{stream}_exp_{batch_idx}.pt")
+            torch.save(act.cpu(), f"{save_path}acts_{stream}_{batch_idx}.pt")
+            torch.save(act_exp.cpu(), f"{save_path}acts_{stream}_exp_{batch_idx}.pt")
 
     if save_path is None:
         return acts, acts_exp
