@@ -320,6 +320,8 @@ def obtain_acts_diff(
         else:
             if not os.path.exists(save_path):
                 os.makedirs(save_path, exist_ok=True)
+            acts = torch.stack([act[key] for key in act.keys()], dim=0)
+            acts_exp = torch.stack([act_exp[key] for key in act_exp.keys()], dim=0)
             torch.save(act.cpu(), f"{save_path}acts_{stream}_{batch_idx}.pt")
             torch.save(act_exp.cpu(), f"{save_path}acts_{stream}_exp_{batch_idx}.pt")
 
