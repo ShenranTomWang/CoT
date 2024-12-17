@@ -7,10 +7,10 @@ import pandas as pd
 import os
 from tqdm import tqdm
 
-def generate_single_line(model: AutoModelForCausalLM, tokenizer: AutoTokenizer, query: str, device="cpu") -> str:
+def generate_single_line(model: AutoModelForCausalLM, tokenizer: AutoTokenizer, query: str, device="cpu", max_len=1000) -> str:
     with torch.no_grad():
         input_ids = tokenizer(query, return_tensors="pt").input_ids.to(device)
-        output_ids = model.generate(input_ids, max_length=100000)[0, input_ids.shape[1]:]
+        output_ids = model.generate(input_ids, max_length=max_len)[0, input_ids.shape[1]:]
         answer = tokenizer.decode(output_ids)
         
     return answer

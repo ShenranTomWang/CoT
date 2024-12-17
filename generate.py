@@ -18,7 +18,7 @@ if __name__ == "__main__":
     tokenizer = load_tokenizer(MODEL, device=device, trust_remote_code=True)
     print(model)
     
-    output = generate_single_line(model, tokenizer, INPUT, device)
+    output = generate_single_line(model, tokenizer, INPUT, device, max_len=100)
     
     with open(OUTPUT + FILENAME, "w") as f:
         f.write(INPUT + output)
