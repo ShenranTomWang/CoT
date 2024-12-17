@@ -67,12 +67,14 @@ def load_model_transformers(model_name: str, device='cpu', dtype=torch.bfloat16,
     print(f"Loading model {model_name}...")
     weights_directory = "./models/" + config_model[model_name]['weights_directory']
     model = AutoModelForCausalLM.from_pretrained(weights_directory, torch_dtype=dtype, device_map=device, **kwargs)
+    if "requires_cuda" in config_model[model_name]:
+        model = model.cuda()
     return model
 
-def load_tokenizer(model_name: str, device='cpu', dtype=torch.bfloat16) -> AutoTokenizer:
+def load_tokenizer(model_name: str, device='cpu', dtype=torch.bfloat16, **kwargs) -> AutoTokenizer:
     print(f"Loading tokenizer {model_name}...")
     weights_directory = "./models/" + config_model[model_name]['weights_directory']
-    model = AutoTokenizer.from_pretrained(weights_directory, dtype=dtype, device=device)
+    model = AutoTokenizer.from_pretrained(weights_directory, dtype=dtype, device=device, **kwargs)
     return model
 
 def get_pretrained_model(

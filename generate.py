@@ -15,7 +15,7 @@ if not os.path.exists(OUTPUT):
 
 if __name__ == "__main__":
     model = load_model_transformers(MODEL, device=device, dtype=torch.bfloat16, trust_remote_code=True)
-    tokenizer = load_tokenizer(MODEL, device=device)
+    tokenizer = load_tokenizer(MODEL, device=device, trust_remote_code=True)
     print(model)
     
     output = generate_single_line(model, tokenizer, INPUT, device)
