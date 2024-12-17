@@ -14,7 +14,7 @@ if not os.path.exists(OUTPUT):
     os.makedirs(OUTPUT, exist_ok=True)
 
 if __name__ == "__main__":
-    model = load_model_transformers(MODEL, device=device, dtype=torch.bfloat16)
+    model = load_model_transformers(MODEL, device=device, dtype=torch.bfloat16, trust_remote_code=True)
     tokenizer = load_tokenizer(MODEL, device=device)
     print(model)
     
