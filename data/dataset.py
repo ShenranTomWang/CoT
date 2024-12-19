@@ -7,8 +7,8 @@ config.read('./config.ini')
 
 class Dataset(ABC):
     def __init__(self, config_obj):
-        self.data_path = config_obj['data_path']
         self.data = []
+        self.data_path = config_obj['data_path']
         self.prompt_key = config_obj['prompt_key']
         self.answer_key = config_obj['answer_key']
     
@@ -20,6 +20,11 @@ class Dataset(ABC):
     
     def __len__(self):
         return len(self.data)
+    
+    def save_as(self, path):
+        with open(path, 'w') as f:
+            for line in self.data:
+                f.write(json.dumps(line) + '\n')
 
     @abstractmethod
     def load(self):
@@ -28,6 +33,23 @@ class Dataset(ABC):
     @abstractmethod
     def save(self):
         pass
+
+class JsonlDataset(Dataset):
+    def __init__(self, data_path, prompt_key, answer_key):
+        super().__init__({data_path: data_path, prompt_key: prompt_key, answer_key: answer_key})
+    
+    def load(self):
+        with open(self.data_path, 'r') as f:
+            for line in f:
+                self.data.append(json.loads(line))
+    
+    def save(self):
+        with open(self.data_path, 'w') as f:
+            for line in self.data:
+                f.write(json.dumps(line) + '\n')
+    
+    def save_as(self, path):
+        super().save_as(path)
 
 class GSM8K(Dataset):
     def __init__(self):
@@ -42,6 +64,9 @@ class GSM8K(Dataset):
         with open(self.data_path, 'w') as f:
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
+    
+    def save_as(self, path = "./experimental_data/GSM8K.jsonl"):
+        super().save_as(path)
                 
 class UMWP(Dataset):
     def __init__(self):
@@ -56,6 +81,9 @@ class UMWP(Dataset):
         with open(self.data_path, 'w') as f:
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
+                
+    def save_as(self, path = "./experimental_data/UMWP.jsonl"):
+        super().save_as(path)
 
 class Com2Sense(Dataset):
     def __init__(self):
@@ -72,6 +100,9 @@ class Com2Sense(Dataset):
         with open(self.data_path, 'w') as f:
             json["examples"] = self.data
             f.write(json.dumps(json))
+    
+    def save_as(self, path = "./experimental_data/com2sense.jsonl"):
+        super().save_as(path)
             
 class FantasyReasoning(Dataset):
     def __init__(self):
@@ -88,3 +119,6 @@ class FantasyReasoning(Dataset):
         with open(self.data_path, 'w') as f:
             json["examples"] = self.data
             f.write(json.dumps(json))
+    
+    def save_as(self, path = "./experimental_data/fantasy_reasoning.jsonl"):
+        super().save_as(path)
