@@ -16,6 +16,7 @@ if __name__ == "__main__":
     tokenizer = load_tokenizer(MODEL, device=device, trust_remote_code=True)
     print(model)
     print(model.device)
+    print(dataset.data)
     
     max_idx = MAX_IDX if MAX_IDX != -1 else len(dataset)
     for i in range(max_idx):
