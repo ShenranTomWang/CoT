@@ -19,8 +19,8 @@ if __name__ == "__main__":
     
     max_idx = MAX_IDX if MAX_IDX != -1 else len(dataset)
     for i in range(max_idx):
-        question = data[i][data.prompt_key]
+        question = dataset[i][dataset.prompt_key]
         output = generate_single_line(model, tokenizer, INPUT, device, max_len=100)
-        data[i][MODEL] = output
+        dataset[i][MODEL] = output
     
-    data.save_as(OUTPUT)
+    dataset.save_as(OUTPUT)
