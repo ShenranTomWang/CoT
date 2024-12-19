@@ -4,7 +4,7 @@ from configparser import ConfigParser
 import os
 
 config = ConfigParser()
-config.read('./config.ini')
+config.read('data/config.ini')
 
 class Dataset(ABC):
     def __init__(self, config_obj):
