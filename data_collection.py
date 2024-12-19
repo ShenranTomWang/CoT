@@ -12,11 +12,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
     dataset = Dataset()
+    dataset.load()
     model = load_model_transformers(MODEL, device=device, dtype=torch.float16, trust_remote_code=True)
     tokenizer = load_tokenizer(MODEL, device=device, trust_remote_code=True)
     print(model)
-    print(model.device)
-    dataset.load()
     
     max_idx = MAX_IDX if MAX_IDX != -1 else len(dataset)
     for i in range(max_idx):
@@ -25,4 +24,4 @@ if __name__ == "__main__":
         output = generate_single_line(model, tokenizer, question, device, max_len=100)
         dataset[i][MODEL] = output
     
-    dataset.save_as(OUTPUT)
+    dataset.save_as(path=OUTPUT)

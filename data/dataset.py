@@ -22,10 +22,10 @@ class Dataset(ABC):
     def __len__(self):
         return len(self.data)
     
-    def save_as(self, path):
+    def save_as(self, path, filename):
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
-        with open(path, 'w') as f:
+        with open(path + filename, 'w') as f:
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
 
@@ -51,8 +51,8 @@ class JsonlDataset(Dataset):
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
     
-    def save_as(self, path):
-        super().save_as(path)
+    def save_as(self, path, filename):
+        super().save_as(path, filaname)
 
 class GSM8K(Dataset):
     def __init__(self):
@@ -68,8 +68,8 @@ class GSM8K(Dataset):
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
     
-    def save_as(self, path = "./experimental_data/"):
-        super().save_as(path + "GSM8K.jsonl")
+    def save_as(self, path = "./experimental_data/", filename="GSM8K.jsonl"):
+        super().save_as(path, filename)
                 
 class UMWP(Dataset):
     def __init__(self):
@@ -85,8 +85,8 @@ class UMWP(Dataset):
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
                 
-    def save_as(self, path = "./experimental_data/"):
-        super().save_as(path + "UMWP.jsonl")
+    def save_as(self, path = "./experimental_data/", filename="UMWP.jsonl"):
+        super().save_as(path, filename)
 
 class Com2Sense(Dataset):
     def __init__(self):
@@ -104,8 +104,8 @@ class Com2Sense(Dataset):
             json["examples"] = self.data
             f.write(json.dumps(json))
     
-    def save_as(self, path = "./experimental_data/"):
-        super().save_as(path + "com2sense.jsonl")
+    def save_as(self, path = "./experimental_data/", filename="com2sense.jsonl"):
+        super().save_as(path, filename)
             
 class FantasyReasoning(Dataset):
     def __init__(self):
@@ -123,5 +123,5 @@ class FantasyReasoning(Dataset):
             json["examples"] = self.data
             f.write(json.dumps(json))
     
-    def save_as(self, path = "./experimental_data/"):
-        super().save_as(path + "fantasy_reasoning.jsonl")
+    def save_as(self, path = "./experimental_data/", filename="fantasy_reasoning.jsonl"):
+        super().save_as(path, filename)
