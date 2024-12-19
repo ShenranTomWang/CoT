@@ -1,6 +1,7 @@
 import json
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
+import os
 
 config = ConfigParser()
 config.read('./config.ini')
@@ -22,6 +23,8 @@ class Dataset(ABC):
         return len(self.data)
     
     def save_as(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
         with open(path, 'w') as f:
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
@@ -65,8 +68,8 @@ class GSM8K(Dataset):
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
     
-    def save_as(self, path = "./experimental_data/GSM8K.jsonl"):
-        super().save_as(path)
+    def save_as(self, path = "./experimental_data/"):
+        super().save_as(path + "GSM8K.jsonl")
                 
 class UMWP(Dataset):
     def __init__(self):
@@ -82,8 +85,8 @@ class UMWP(Dataset):
             for line in self.data:
                 f.write(json.dumps(line) + '\n')
                 
-    def save_as(self, path = "./experimental_data/UMWP.jsonl"):
-        super().save_as(path)
+    def save_as(self, path = "./experimental_data/"):
+        super().save_as(path + "UMWP.jsonl")
 
 class Com2Sense(Dataset):
     def __init__(self):
@@ -101,8 +104,8 @@ class Com2Sense(Dataset):
             json["examples"] = self.data
             f.write(json.dumps(json))
     
-    def save_as(self, path = "./experimental_data/com2sense.jsonl"):
-        super().save_as(path)
+    def save_as(self, path = "./experimental_data/"):
+        super().save_as(path + "com2sense.jsonl")
             
 class FantasyReasoning(Dataset):
     def __init__(self):
@@ -120,5 +123,5 @@ class FantasyReasoning(Dataset):
             json["examples"] = self.data
             f.write(json.dumps(json))
     
-    def save_as(self, path = "./experimental_data/fantasy_reasoning.jsonl"):
-        super().save_as(path)
+    def save_as(self, path = "./experimental_data/"):
+        super().save_as(path + "fantasy_reasoning.jsonl")
