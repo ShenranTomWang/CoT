@@ -22,6 +22,7 @@ if __name__ == "__main__":
         question = dataset[i][dataset.prompt_key]
         question = question + " Format your response such that you show your reasoning and end with \"Answer: (your numerical answer here)\""
         output = generate_single_line(model, tokenizer, question, device, max_len=1000)
+        print(output)
         dataset[i][MODEL] = output
     
     dataset.save_as(path=OUTPUT)
